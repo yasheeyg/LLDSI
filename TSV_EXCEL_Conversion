@@ -1,0 +1,53 @@
+# TSV to Excel Batch Converter
+# Save as: convert_tsv_to_excel.R
+
+# Load required packages
+if (!require("readr", quietly = TRUE)) install.packages("readr")
+if (!require("writexl", quietly = TRUE)) install.packages("writexl")
+library(readr)
+library(writexl)
+
+# Set directories (MODIFY THESE PATHS)
+input_dir <- "F:/tsv_LBD"       # Folder with your TSV files
+output_dir <- "F:/excel_output" # Where to save Excel files
+
+# Create output directory if needed
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
+  cat("Created output directory:", output_dir, "\n")
+}
+
+# Get list of TSV files
+tsv_files <- list.files(
+  path = input_dir,
+  pattern = "\\.tsv$",
+  full.names = TRUE,
+  ignore.case = TRUE
+)
+
+cat("Found", length(tsv_files), "TSV files for conversion\n")
+
+# Process each file
+for (file in tsv_files) {
+  tryCatch({
+    # Read TSV file
+    df <- read_tsv(file, show_col_types = FALSE)
+    
+    # Create output filename
+    base_name <- basename(file)
+    name_without_ext <- sub("\\.tsv$", "", base_name, ignore.case = TRUE)
+    output_file <- file.path(output_dir, paste0(name_without_ext, ".xlsx"))
+    
+    # Write to Excel
+    write_xlsx(df, output_file)
+    
+    cat("Converted:", base_name, "\n")
+  }, error = function(e) {
+    cat("! Failed to convert", basename(file), ":", e$message, "\n")
+  })
+}
+
+# Final summary
+cat("\nConversion complete!\n")
+cat("Successfully processed", length(tsv_files), "files\n")
+cat("Output location:", output_dir, "\n")
